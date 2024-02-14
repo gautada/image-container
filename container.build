@@ -51,9 +51,13 @@ RUN /sbin/apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/e
 # RUN /bin/chown -R $USER:$USER /opt
 USER $USER
 RUN /usr/bin/pip3 install pillow-heif --break-system-packages
-COPY app.py /home/$USER/app.py
-COPY static /home/$USER/static
-COPY templates /home/$USER/templates 
+# *** DEVELOPMENT ***
+RUN /bin/ln -fsv /mnt/volumes/container/dev/app.py /home/$USER/app.py
+RUN /bin/ln -fsv /mnt/volumes/container/dev/static /home/$USER/static
+RUN /bin/ln -fsv /mnt/volumes/container/dev/templates /home/$USER/templates
+# COPY app.py /home/$USER/app.py
+# COPY static /home/$USER/static
+# COPY templates /home/$USER/templates 
 VOLUME /mnt/volumes/backup
 VOLUME /mnt/volumes/configmaps
 VOLUME /mnt/volumes/container
