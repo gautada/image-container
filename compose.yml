@@ -1,0 +1,40 @@
+version: "3.9"
+services:
+  image:
+    build:
+      args:
+        ALPINE_VERSION: "latest"
+        CABTALOUPE_VERSION: "5.0.6"
+      context: .
+      dockerfile: container.build
+      no_cache: true  
+      
+      tags:
+        - "cantaloupe:build"
+        - "gautada/cantaloupe:build"
+        - "gautada/cantaloupe:latest"
+    image: "gautada/cantaloupe:latest"
+    ports:
+    - "8080:8080/tcp"
+    volumes:
+      - "Container:/mnt/volumes/container"
+      - "Backup:/mnt/volumes/backup"
+      - "Configmaps:/mnt/volumes/configmaps"
+      - "Secrets:/mnt/volumes/secrets"
+      
+volumes:
+  Container:
+    external: true
+    name: "Container"
+
+  Backup:
+    external: true
+    name: "Backup"
+
+  Configmaps:
+    external: true
+    name: "Configmaps"
+    
+  Secrets:
+    external: true
+    name: "Secrets"

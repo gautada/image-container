@@ -1,0 +1,12 @@
+<html>
+ <head>
+  <title>Image Server: List</title>
+ </head>
+ <body>
+  <h1>Image Server: List</h1>
+  <ul>
+  {% for item in list %}
+	<li><a href="/img/src/{{item['id']}}"><img src="/img/tn/{{item['id']}}"/></a>{{item['id']}} - {{item['mime']}}</li>
+  {% endfor %}
+ </body>
+</html>

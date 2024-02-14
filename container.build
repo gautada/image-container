@@ -1,0 +1,62 @@
+ARG ALPINE_VERSION=latest
+
+# │ STAGE: CONTAINER
+# ╰――――――――――――――――――――――――――――――――――――――――――――――――――――――
+FROM gautada/alpine:$ALPINE_VERSION as CONTAINER
+ARG CANTALOUPE_VERSION=5.0.6
+
+# ╭――――――――――――――――――――╮
+# │ METADATA           │
+# ╰――――――――――――――――――――╯
+LABEL source="https://github.com/gautada/image-container.git"
+LABEL maintainer="Adam Gautier <adam@gautier.org>"
+LABEL description="A base image server"
+
+# ╭―
+# │ USER
+# ╰――――――――――――――――――――
+ARG USER=images
+RUN /usr/sbin/usermod -l $USER alpine
+RUN /usr/sbin/usermod -d /home/$USER -m $USER
+RUN /usr/sbin/groupmod -n $USER alpine
+RUN /bin/echo "$USER:$USER" | /usr/sbin/chpasswd
+
+
+# ╭―
+# │ PRIVILEGES
+# ╰――――――――――――――――――――
+# COPY privileges /etc/container/privileges
+
+# ╭―
+# │ BACKUP
+# ╰――――――――――――――――――――
+# COPY backup /etc/container/backup
+
+
+# ╭―
+# │ ENTRYPOINT
+# ╰――――――――――――――――――――
+COPY entrypoint /etc/container/entrypoint
+
+# ╭――――――――――――――――――――╮
+# │ APPLICATION        │
+# ╰――――――――――――――――――――╯
+RUN /sbin/apk add --no-cache python3 py3-pip py3-python-multipart py3-jinja2
+RUN /sbin/apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing/ py3-fastapi
+RUN /sbin/apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/community/ uvicorn py3-magic py3-pillow
+
+# ╭――――――――――――――――――――╮
+# │ CONTAINER          │
+# ╰――――――――――――――――――――╯
+# RUN /bin/chown -R $USER:$USER /opt
+USER $USER
+RUN /usr/bin/pip3 install pillow-heif --break-system-packages
+COPY app.py /home/$USER/app.py
+COPY static /home/$USER/static
+COPY templates /home/$USER/templates 
+VOLUME /mnt/volumes/backup
+VOLUME /mnt/volumes/configmaps
+VOLUME /mnt/volumes/container
+VOLUME /mnt/volumes/secrets
+VOLUME /mnt/volumes/source
+WORKDIR /home/$USER
