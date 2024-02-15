@@ -4,12 +4,14 @@ from fastapi import File, UploadFile
 from fastapi.responses import Response, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import RedirectResponse
+import starlette.status as status
 
 from PIL import Image as PILImage
 
 from pydantic import BaseModel
 
-from os import listdir
+from os import listdir, remove
 from os.path import isfile, join
 
 # from pillow_heif import register_heif_opener
@@ -18,6 +20,7 @@ import base64
 import io
 import magic
 import uvicorn
+import time
 import zlib
 
 IMAGE_CACHE="/mnt/volumes/container/images"
@@ -69,6 +72,10 @@ class Image(BaseModel):
 		return cls.parse_obj({"encimg":tmp})
 	
 	@staticmethod
+	def  delete(name, group=None):
+		remove(join(IMAGE_CACHE, name))
+		
+	@staticmethod
 	def list(folder=None):
 		rtn = []
 		path = IMAGE_CACHE
@@ -80,7 +87,7 @@ class Image(BaseModel):
 			if not img.endswith(('.DS_Store')):
 				print(f"- Image: {img}")
 				image = Image.load(img)
-				rtn.append({"id":image.name,"mime":image.mime})
+				rtn.append({"name":image.name,"mime":image.mime})
 		return rtn
 
 
@@ -90,37 +97,55 @@ def index(request: Request):
 	return templates.TemplateResponse(request=request, name="index.html")
 
 @app.get("/list", response_class=HTMLResponse)
-def list(request: Request, group: str=None):
+def list(request: Request, group:str=None):
+	limgs=[]
+	rimgs=[]
 	list = Image.list(folder=group)
+	i = 1
 	for item in list:
-		print( item )
-	return templates.TemplateResponse(request=request, name="list.html", context={"list":list})
+		if 0 < i % 2:
+			limgs.append(item)
+		else:
+			rimgs.append(item)
+		i += 1
+	return templates.TemplateResponse(request=request, name="list.html", context={"limgs":limgs,"rimgs":rimgs,})
 
-@app.get("/img/src/{id}")
-def image(id:str):
-	img = Image.load(id)
+@app.get("/metadata/{name}", response_class=HTMLResponse)
+def metadata(request: Request, name:str=None):
+	img = Image.load(name)
+	print( img.name )
+	return templates.TemplateResponse(request=request, name="metadata.html", context={"img":img})
+
+@app.get("/img/delete/{name}")
+def delete(name:str):
+	Image.delete(name)
+	return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+
+
+@app.get("/img/src/{name}")
+async def src(name:str):
+	# time.sleep(10)
+	img = Image.load(name)
 	return Response(content=img.bytes, media_type=img.mime)
 
-@app.get("/img/tn/{id}")
-def image(id:str):
-	image = Image.load(id)
+@app.get("/img/thumbnail/{name}")
+def thumbnail(name:str):
+	image = Image.load(name)
 	img = PILImage.open(io.BytesIO(image.bytes))
 	img.thumbnail((90,90))
 	img_byte_arr = io.BytesIO()
 	img.save(img_byte_arr, format=image.format)
 	return Response(content=img_byte_arr.getvalue(), media_type=image.mime)
-			
-	# img_byte_arr = io.BytesIO()
-	# with Img.open("/mnt/volumes/container/2056145448") as img:
-	# 	img.save(img_byte_arr, format='PNG')
-	# return img_byte_arr.getvalue()
-	# 
-	# image_bytes: bytes = generate_cat_picture()
-	# # media_type here sets the media type of the actual response sent to the client.
-	# return Response(content=img_byte_arr.getvalue(), media_type="image/png")
 
+@app.get("/img/background/{name}")
+def background(name:str):
+	image = Image.load(name)
+	img = PILImage.open(io.BytesIO(image.bytes))
+	img.thumbnail((20,20), PILImage.Resampling.LANCZOS)
+	img_byte_arr = io.BytesIO()
+	img.save(img_byte_arr, format=image.format)
+	return Response(content=img_byte_arr.getvalue(), media_type=image.mime)
 
-	
 
 		
 
@@ -162,10 +187,11 @@ def upload(file: UploadFile = File(...)):
 
 if "__main__"==__name__:
 	uvicorn.run(
-		app,
+		"app:app",
 		host="0.0.0.0",
 		port=8080,
 		log_level="debug",
+		reload=True
 	)
 	
 

@@ -1,10 +1,53 @@
 <html>
  <head>
   <title>Image Server: List</title>
+  <link rel="stylesheet" type="text/css" href="/static/base.css"/>
  </head>
  <body>
-  {% for item in list %}
-  <img src="/img/src/{{item['id']}}" loading="lazy"/>
+  <div class="images">
+   <div class="left column">
+  {% for img in limgs %}
+   <!-- style="background-image: url(/img/background/{{img['name']}});" -->
+    <div class="image">
+     <a href="/metadata/{{img['name']}}">
+      <img src="/img/src/{{img['name']}}" loading="lazy"/>
+     </a>
+    </div>
   {% endfor %}
+   </div>
+   <div class="right column">
+   {% for img in rimgs %}
+    <div class="image">
+     <a href="/metadata/{{img['name']}}">
+      <img src="/img/src/{{img['name']}}" loading="lazy"/>
+     </a>
+    </div>
+   {% endfor %}
+    </div>
+   </div>
+   <script>
+function set(img) {
+  div = img.parentElement.parentElement
+  div.classList.add("loaded");
+  div.style["background-image"] = "none";
+}
+function loaded() {
+  // console.log(this.parentElement.parentElement);
+  set(this);
+}
+function setup(img) {
+ console.log(img.src);
+ div = img.parentElement.parentElement
+ div.style["background-image"] = img.src.replace("/src/", "/background/");
+ if(img.complete) {
+  set(img);
+ } else {
+  img.addEventListener("load", loaded);
+ }
+}
+const IMAGES = document.querySelectorAll("div.image a img");
+imgs = [...IMAGES];
+imgs.forEach(setup);
+   </script>
  </body>
 </html>

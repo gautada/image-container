@@ -1,3 +1,75 @@
+div.images {
+	clear: both;
+}
+
+div.column {
+	display: inline-block;
+	width: 50%;
+}
+
+div.left {
+ 	background-color: #d5d6e6;
+	float: left;
+}
+
+div.right {
+ 	background-color: #d5d6e6;
+}
+
+div.image {
+  background-repeat: no-repeat;
+  background-size: cover;
+  display: flex;
+  justify-content: center;
+  padding: 5px;
+}
+
+div.left div.image {
+ padding: 4px 2px 4px 4px;
+} 
+
+div.right div.image {
+ padding: 4px 4px 4px 2px;
+} 
+
+div.image img {
+  opacity: 0;
+  transition: opacity 250ms ease-in-out;
+}
+
 img {
-	width: 20%
+ 	max-width: 100%;
+}
+
+div.image::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  animation: pulse 2.5s infinite;
+  background-color: white;
+}
+
+@keyframes pulse {
+  0% {
+	opacity: 0;
+  }
+  50% {
+	opacity: 0.1;
+  }
+  100% {
+	opacity: 0;
+  }
+}
+
+div.image::before {
+  animation: none;
+  content: none;
+}
+div.image.loaded {
+ background-image: nonr;
+}
+
+div.image.loaded img {
+  opacity: 1;
 }

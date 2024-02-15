@@ -1,0 +1,15 @@
+<html>
+ <head>
+  <title>Image Server: Metadata</title>
+  <link rel="stylesheet" type="text/css" href="/static/base.css"/>
+ </head>
+ <body>
+  <h1>Image Server: Metadata</h1>
+  <h2>{{img.name}}</h2>
+  <a href="/img/delete/{{img.name}}">Delete</a>
+  <br/><br/>
+  <!-- img src="/img/thumbnail/{{img['name']}}" loading="lazy"/ -->
+ 
+  <img src="/img/src/{{img['name']}}" loading="lazy"/>
+ </body>
+</html>
